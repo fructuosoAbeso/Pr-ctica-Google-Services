@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "135465606691",
+    "project_id": "services-dd642",
+    "storage_bucket": "services-dd642.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:135465606691:android:fe3003da57128b471e5b96",
+        "android_client_info": {
+          "package_name": "es.ua.eps.drawables"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB5LeTe2lUIr2xHlK7fIVT3cJ5bDs3KiXQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

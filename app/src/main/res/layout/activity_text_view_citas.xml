@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    tools:context=".TextViewCitasActivity">
+
+    <!-- =========================
+         TextViewCitas destacado
+         ========================= -->
+    <es.ua.eps.drawables.TextViewCitas
+        android:id="@+id/texto_citas"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/fondo_marco"
+        android:padding="16dp"
+        android:textColor="#212121"
+        android:textSize="18sp"
+        android:fontFamily="sans-serif-medium"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <!-- =========================
+         EdicionBorrable debajo del TextViewCitas
+         ========================= -->
+    <es.ua.eps.drawables.EdicionBorrable
+        android:id="@+id/edicion_borrable"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/fondo_marco"
+        android:padding="12dp"
+        android:textColor="#212121"
+        android:textSize="16sp"
+        app:layout_constraintTop_toBottomOf="@id/texto_citas"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <!-- =========================
+         Gráfica centrada y cuadrada
+         ========================= -->
+    <es.ua.eps.drawables.Grafica
+        android:id="@+id/grafica"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginBottom="24dp"
+        app:layout_constraintTop_toBottomOf="@id/edicion_borrable"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintDimensionRatio="1:1"
+        app:layout_constraintBottom_toTopOf="@id/seekBarGrafica"/>
+
+    <!-- =========================
+         SeekBar debajo de la gráfica
+         ========================= -->
+    <SeekBar
+        android:id="@+id/seekBarGrafica"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
+        android:max="100"
+        android:thumbTint="#FF5722"
+        android:progressTint="#FF9800"
+        app:layout_constraintTop_toBottomOf="@id/grafica"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
