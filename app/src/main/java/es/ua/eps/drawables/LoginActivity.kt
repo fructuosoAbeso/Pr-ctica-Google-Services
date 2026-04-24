@@ -1,5 +1,6 @@
 package es.ua.eps.drawables
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
@@ -27,6 +28,15 @@ class LoginActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // 1. AUTO-LOGIN (Persistencia local): Si ya existe el flag en SharedPreferences, saltar al Main
+        val sharedPref = getSharedPreferences("AUTH_PREFS", Context.MODE_PRIVATE)
+        if (sharedPref.getBoolean("IS_LOGGED_IN", false)) {
+            val nombre = sharedPref.getString("USER_NAME", "Usuario")
+            irAMain(nombre!!)
+            return
+        }
+
         enableEdgeToEdge()
         setContentView(R.layout.activity_login)
 
@@ -40,33 +50,41 @@ class LoginActivity : AppCompatActivity() {
         val btnCheckServices = findViewById<Button>(R.id.btn_check_services)
 
         btnCheckServices.setOnClickListener { verificarServiciosGoogle() }
-        btnGoogleAuth.setOnClickListener { lanzarRegistroGoogle() }
+        btnGoogleAuth.setOnClickListener { iniciarFlujoAutenticacion() }
     }
 
     private fun verificarServiciosGoogle() {
         val availability = GoogleApiAvailability.getInstance()
         val resultCode = availability.isGooglePlayServicesAvailable(this)
         if (resultCode == ConnectionResult.SUCCESS) {
-            Toast.makeText(this, "Google Play Services está disponible", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Servicios OK", Toast.LENGTH_SHORT).show()
         } else {
             availability.getErrorDialog(this, resultCode, 9000)?.show()
         }
     }
 
-    private fun lanzarRegistroGoogle() {
+    private fun iniciarFlujoAutenticacion() {
         val credentialManager = CredentialManager.create(this)
-
-        // Usamos el ID de tu archivo strings.xml
         val serverClientId = getString(R.string.web_client_id)
 
-        val googleIdOption = GetGoogleIdOption.Builder()
-            .setFilterByAuthorizedAccounts(false)
+        // OPCIÓN LOGIN: Busca cuentas que YA han autorizado esta app anteriormente.
+        val loginOption = GetGoogleIdOption.Builder()
+            .setFilterByAuthorizedAccounts(true)
             .setServerClientId(serverClientId)
-            .setAutoSelectEnabled(false) // Para que el usuario siempre elija la cuenta
+            .setAutoSelectEnabled(true) // Crucial: Si ya existe, hace login automático sin popup
             .build()
 
+        // OPCIÓN REGISTRO: Permite elegir cualquier cuenta si no se encuentra una autorizada.
+        val registroOption = GetGoogleIdOption.Builder()
+            .setFilterByAuthorizedAccounts(false)
+            .setServerClientId(serverClientId)
+            .setAutoSelectEnabled(false)
+            .build()
+
+        // Añadimos ambas: CredentialManager intentará primero la más restrictiva (login)
         val request = GetCredentialRequest.Builder()
-            .addCredentialOption(googleIdOption)
+            .addCredentialOption(loginOption)
+            .addCredentialOption(registroOption)
             .build()
 
         lifecycleScope.launch {
@@ -74,18 +92,13 @@ class LoginActivity : AppCompatActivity() {
                 val result = credentialManager.getCredential(this@LoginActivity, request)
                 procesarResultado(result)
             } catch (e: NoCredentialException) {
-                // Si no hay cuentas de Google configuradas en el móvil, abrimos ajustes
-                Log.e("AUTH", "No hay cuentas configuradas: ${e.message}")
-                Toast.makeText(this@LoginActivity, "No hay cuentas de Google. Añade una.", Toast.LENGTH_LONG).show()
-                val intent = Intent(Settings.ACTION_ADD_ACCOUNT).apply {
+                // Si no hay ninguna cuenta de Google en el dispositivo
+                startActivity(Intent(Settings.ACTION_ADD_ACCOUNT).apply {
                     putExtra(Settings.EXTRA_ACCOUNT_TYPES, arrayOf("com.google"))
-                }
-                startActivity(intent)
+                })
             } catch (e: GetCredentialException) {
-                Log.e("AUTH", "Error Credential Manager: ${e.message}")
-                Toast.makeText(this@LoginActivity, "Error: ${e.message}", Toast.LENGTH_LONG).show()
-            } catch (e: Exception) {
-                Log.e("AUTH", "Error desconocido: ${e.message}")
+                Log.e("AUTH", "Error: ${e.message}")
+                Toast.makeText(this@LoginActivity, "Sesión no iniciada", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -96,22 +109,29 @@ class LoginActivity : AppCompatActivity() {
         if (credential is CustomCredential && credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
             try {
                 val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
-
-                // Aquí ya tienes los datos del usuario
                 val nombreUsuario = googleIdTokenCredential.displayName ?: "Usuario"
-                val emailUsuario = googleIdTokenCredential.id
 
-                Log.d("AUTH", "Login exitoso. Email: $emailUsuario")
+                // GUARDAR SESIÓN: Para que el autologin del onCreate funcione la próxima vez
+                val sharedPref = getSharedPreferences("AUTH_PREFS", Context.MODE_PRIVATE)
+                with(sharedPref.edit()) {
+                    putBoolean("IS_LOGGED_IN", true)
+                    putString("USER_NAME", nombreUsuario)
+                    apply()
+                }
+
                 Toast.makeText(this, "Bienvenido $nombreUsuario", Toast.LENGTH_SHORT).show()
+                irAMain(nombreUsuario)
 
-                // Ir a la MainActivity
-                val intent = Intent(this, MainActivity::class.java)
-                intent.putExtra("USER_NAME", nombreUsuario)
-                startActivity(intent)
-                finish()
             } catch (e: Exception) {
-                Log.e("AUTH", "Error al procesar los datos de la cuenta")
+                Log.e("AUTH", "Error al procesar token")
             }
         }
+    }
+
+    private fun irAMain(nombre: String) {
+        val intent = Intent(this, MainActivity::class.java)
+        intent.putExtra("USER_NAME", nombre)
+        startActivity(intent)
+        finish()
     }
 }
