@@ -1,26 +1,44 @@
 {
   "project_info": {
-    "project_number": "135465606691",
-    "project_id": "services-dd642",
-    "storage_bucket": "services-dd642.firebasestorage.app"
+    "project_number": "181159272132",
+    "project_id": "services-4a935",
+    "storage_bucket": "services-4a935.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:135465606691:android:fe3003da57128b471e5b96",
+        "mobilesdk_app_id": "1:181159272132:android:f11f0fdd86af75d6dd7391",
         "android_client_info": {
           "package_name": "es.ua.eps.drawables"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "181159272132-a5agvpv0vjc0akl3njsms12t0lmvsqke.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "es.ua.eps.drawables",
+            "certificate_hash": "1c3bebf4810d0d3e3683d03b3b22f68f23cbc069"
+          }
+        },
+        {
+          "client_id": "181159272132-n5l4lmei1tmhhb9d5b7igd6c31atk65v.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
-          "current_key": "AIzaSyB5LeTe2lUIr2xHlK7fIVT3cJ5bDs3KiXQ"
+          "current_key": "AIzaSyCoNT_wK_2F38ihCvzi85WJwRhy3Gcb7cA"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "181159272132-n5l4lmei1tmhhb9d5b7igd6c31atk65v.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

@@ -2,6 +2,7 @@ package es.ua.eps.drawables
 
 import android.content.Intent
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import android.widget.Button
 import android.widget.Toast
@@ -14,6 +15,7 @@ import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.GetCredentialResponse
 import androidx.credentials.exceptions.GetCredentialException
+import androidx.credentials.exceptions.NoCredentialException
 import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
@@ -45,7 +47,7 @@ class LoginActivity : AppCompatActivity() {
         val availability = GoogleApiAvailability.getInstance()
         val resultCode = availability.isGooglePlayServicesAvailable(this)
         if (resultCode == ConnectionResult.SUCCESS) {
-            Toast.makeText(this, "Servicios OK", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Google Play Services está disponible", Toast.LENGTH_SHORT).show()
         } else {
             availability.getErrorDialog(this, resultCode, 9000)?.show()
         }
@@ -54,12 +56,13 @@ class LoginActivity : AppCompatActivity() {
     private fun lanzarRegistroGoogle() {
         val credentialManager = CredentialManager.create(this)
 
-        // REEMPLAZA este ID con tu "Client ID de tipo WEB" de la consola de Google Cloud
-        val serverClientId = "135465606691-6ij7r555mh6am0hvpecuqgb7a34605mg.apps.googleusercontent.com"
+        // Usamos el ID de tu archivo strings.xml
+        val serverClientId = getString(R.string.web_client_id)
 
         val googleIdOption = GetGoogleIdOption.Builder()
             .setFilterByAuthorizedAccounts(false)
             .setServerClientId(serverClientId)
+            .setAutoSelectEnabled(false) // Para que el usuario siempre elija la cuenta
             .build()
 
         val request = GetCredentialRequest.Builder()
@@ -70,6 +73,14 @@ class LoginActivity : AppCompatActivity() {
             try {
                 val result = credentialManager.getCredential(this@LoginActivity, request)
                 procesarResultado(result)
+            } catch (e: NoCredentialException) {
+                // Si no hay cuentas de Google configuradas en el móvil, abrimos ajustes
+                Log.e("AUTH", "No hay cuentas configuradas: ${e.message}")
+                Toast.makeText(this@LoginActivity, "No hay cuentas de Google. Añade una.", Toast.LENGTH_LONG).show()
+                val intent = Intent(Settings.ACTION_ADD_ACCOUNT).apply {
+                    putExtra(Settings.EXTRA_ACCOUNT_TYPES, arrayOf("com.google"))
+                }
+                startActivity(intent)
             } catch (e: GetCredentialException) {
                 Log.e("AUTH", "Error Credential Manager: ${e.message}")
                 Toast.makeText(this@LoginActivity, "Error: ${e.message}", Toast.LENGTH_LONG).show()
@@ -81,19 +92,25 @@ class LoginActivity : AppCompatActivity() {
 
     private fun procesarResultado(result: GetCredentialResponse) {
         val credential = result.credential
+
         if (credential is CustomCredential && credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
             try {
                 val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
-                val nombreUsuario = googleIdTokenCredential.displayName ?: "Usuario"
 
+                // Aquí ya tienes los datos del usuario
+                val nombreUsuario = googleIdTokenCredential.displayName ?: "Usuario"
+                val emailUsuario = googleIdTokenCredential.id
+
+                Log.d("AUTH", "Login exitoso. Email: $emailUsuario")
                 Toast.makeText(this, "Bienvenido $nombreUsuario", Toast.LENGTH_SHORT).show()
 
+                // Ir a la MainActivity
                 val intent = Intent(this, MainActivity::class.java)
                 intent.putExtra("USER_NAME", nombreUsuario)
                 startActivity(intent)
                 finish()
             } catch (e: Exception) {
-                Log.e("AUTH", "Error al procesar token")
+                Log.e("AUTH", "Error al procesar los datos de la cuenta")
             }
         }
     }
